@@ -172,7 +172,7 @@ impl<ERR, DELAY: DelayMs<u16>, PIN: OutputPin<Error = ERR>> Morse<DELAY, PIN> {
         for c in output.chars() {
             let c = c.to_ascii_uppercase();
             if c.is_ascii_uppercase() {
-                let morse_char = CHARS[c as usize];
+                let morse_char = CHARS[c as usize - 0x41];
                 let mut pattern = morse_char.pattern;
                 for _ in 0..morse_char.length {
                     if self.invert {
