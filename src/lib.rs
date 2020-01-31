@@ -1,4 +1,8 @@
-//! Only supports a-z0-9
+//! Morse output for embedded platforms
+//!
+//! # Limitations
+//!
+//! Only supports a-z
 #![no_std]
 
 use embedded_hal::{blocking::delay::DelayMs, digital::v2::OutputPin};
