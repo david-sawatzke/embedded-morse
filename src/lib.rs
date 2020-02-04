@@ -2,7 +2,17 @@
 //!
 //! # Limitations
 //!
-//! Only supports a-z
+//! Only supports 'a-zA-Z '
+//!
+//! # Example
+//!
+//! ```
+//! let pin = …;
+//! let delay = …;
+//!
+//! let mut morse = Morse::new_default(delay, pin, false);
+//! morse.output_str("Hello World");
+//! ```
 #![no_std]
 
 use embedded_hal::{blocking::delay::DelayMs, digital::v2::OutputPin};
@@ -156,8 +166,9 @@ pub struct Morse<DELAY, PIN> {
     invert: bool,
 }
 
-// TODO Invert output
 impl<ERR, DELAY: DelayMs<u16>, PIN: OutputPin<Error = ERR>> Morse<DELAY, PIN> {
+    /// Create a new morse instance with a configurable dot_length in ms
+    /// `invert` inverts the output signal, so that the output is set low, when it's active
     pub fn new(delay: DELAY, pin: PIN, invert: bool, dot_length: u16) -> Self {
         Self {
             dot_length,
@@ -168,10 +179,15 @@ impl<ERR, DELAY: DelayMs<u16>, PIN: OutputPin<Error = ERR>> Morse<DELAY, PIN> {
             invert,
         }
     }
+    /// Create a new morse instance with a `dot_length` of 300 ms
+    /// `invert` inverts the output signal, so that the output is set low, when it's active
     pub fn new_default(delay: DELAY, pin: PIN, invert: bool) -> Self {
         Self::new(delay, pin, invert, 300)
     }
 
+    /// Output a string as a morse message
+    ///
+    /// Only supports 'a-zA-Z '
     pub fn output_str(&mut self, output: &str) -> Result<(), ERR> {
         for c in output.chars() {
             let c = c.to_ascii_uppercase();
