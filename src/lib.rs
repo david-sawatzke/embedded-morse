@@ -15,7 +15,8 @@
 //! ```
 #![no_std]
 
-use embedded_hal::{blocking::delay::DelayMs, digital::v2::OutputPin};
+use embedded_hal::blocking::delay::DelayMs;
+use switch_hal::OutputSwitch;
 
 /// 0 is dot, 1 is dash
 #[derive(Debug, Clone, Copy)]
@@ -157,32 +158,30 @@ const CHARS: [MorseChar; 26] = [
     },
 ];
 
-pub struct Morse<DELAY, PIN> {
+pub struct Morse<DELAY, PIN: OutputSwitch> {
     dot_length: u16,
     dash_length: u16,
     space_length: u16,
     delay: DELAY,
     pin: PIN,
-    invert: bool,
 }
 
-impl<ERR, DELAY: DelayMs<u16>, PIN: OutputPin<Error = ERR>> Morse<DELAY, PIN> {
+impl<ERR, DELAY: DelayMs<u16>, PIN: OutputSwitch<Error = ERR>> Morse<DELAY, PIN> {
     /// Create a new morse instance with a configurable dot_length in ms
     /// `invert` inverts the output signal, so that the output is set low, when it's active
-    pub fn new(delay: DELAY, pin: PIN, invert: bool, dot_length: u16) -> Self {
+    pub fn new(delay: DELAY, pin: PIN, dot_length: u16) -> Self {
         Self {
             dot_length,
             dash_length: dot_length * 3,
             space_length: dot_length * 3,
             delay,
             pin,
-            invert,
         }
     }
     /// Create a new morse instance with a `dot_length` of 300 ms
     /// `invert` inverts the output signal, so that the output is set low, when it's active
-    pub fn new_default(delay: DELAY, pin: PIN, invert: bool) -> Self {
-        Self::new(delay, pin, invert, 300)
+    pub fn new_default(delay: DELAY, pin: PIN) -> Self {
+        Self::new(delay, pin, 300)
     }
 
     /// Output a string as a morse message
@@ -195,21 +194,13 @@ impl<ERR, DELAY: DelayMs<u16>, PIN: OutputPin<Error = ERR>> Morse<DELAY, PIN> {
                 let morse_char = CHARS[c as usize - 0x41];
                 let mut pattern = morse_char.pattern;
                 for _ in 0..morse_char.length {
-                    if self.invert {
-                        self.pin.set_low()?;
-                    } else {
-                        self.pin.set_high()?;
-                    }
+                    self.pin.on()?;
                     self.delay.delay_ms(if pattern & 0b1 == 1 {
                         self.dash_length
                     } else {
                         self.dot_length
                     });
-                    if self.invert {
-                        self.pin.set_high()?;
-                    } else {
-                        self.pin.set_low()?;
-                    }
+                    self.pin.off()?;
                     pattern = pattern >> 1;
                     self.delay.delay_ms(self.dot_length);
                 }

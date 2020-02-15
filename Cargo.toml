@@ -13,3 +13,4 @@ repository = "https://github.com/david-sawatzke/embedded-morse"
 
 [dependencies]
 embedded-hal = "0.2.3"
+switch-hal = "0.3.2"
